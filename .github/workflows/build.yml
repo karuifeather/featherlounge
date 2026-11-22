@@ -72,6 +72,9 @@ jobs:
           BUILD_TOOLS: ${{ env.ANDROID_BUILD_TOOLS }}
           PLATFORM: ${{ env.ANDROID_PLATFORM }}
           APK_NAME: FeatherLounge.apk
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          TRAKT_CLIENT_ID: ${{ secrets.TRAKT_CLIENT_ID }}
+          TRAKT_CLIENT_SECRET: ${{ secrets.TRAKT_CLIENT_SECRET }}
           VERSION_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
         run: |
           VERSION_NAME="${VERSION_NAME#v}" ./build.sh

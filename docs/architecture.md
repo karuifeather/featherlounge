@@ -20,7 +20,8 @@ The JS bridge is `FeatherLounge` and the package id is `io.github.karuifeather.f
 
 - **Stage.** The UI is laid out on a fixed 1920x1080 stage that is scaled to the WebView's layout viewport, so it looks the same on any TV resolution.
 - **Rows.** `ROWS` in `assets/settings.js` lists the carousels. Each row has a `load()` returning items (`{src, id, title, by, img, bg, desc}`). Add a row by adding one entry.
-- **Data sources.** Stremio's public Cinemeta catalog (movies/shows), YouTube's TV feed when signed in, Piped public instances for fallback trending. Results are cached in `localStorage` for 30 minutes and shown stale if the network fails.
+- **Trakt.** `trakt.js` links an account with the device-code flow, builds the Trakt rows, and `withoutWatched()` filters every Stremio row against the watched list. Trakt has no artwork, so posters come from Stremio's image service by IMDb id.
+- **Data sources.** Stremio's public Cinemeta catalog (movies/shows), TMDB for personalised rows when the build has a key (`tmdb.js`; preferences live in `prefs.js`; TMDB items get their IMDb id only when opened, see `resolveImdb`), YouTube's TV feed when signed in, Piped public instances for fallback trending. Results are cached in `localStorage` for 30 minutes and shown stale if the network fails.
 - **Motion.** Row and carousel scrolling is a per-frame glide toward a target position (`glideTo()`), so repeated key presses stay smooth. Focus effects use only `transform`/`opacity`. The hero updates after focus settles.
 - **Navigation.** Arrow keys move focus (`setFocus`), Enter opens (`activate`), Back returns to the top bar.
 

@@ -24,6 +24,10 @@ public class MainActivity extends Activity {
         web = new WebView(this);
         web.setBackgroundColor(Color.parseColor(BACKGROUND_COLOR));
         configureSettings(web.getSettings());
+        // The UI is driven by a remote and never scrolls the page: no native scroll bars or overscroll glow.
+        web.setVerticalScrollBarEnabled(false);
+        web.setHorizontalScrollBarEnabled(false);
+        web.setOverScrollMode(View.OVER_SCROLL_NEVER);
         web.setWebViewClient(new WebViewClient());
         web.setWebChromeClient(new WebChromeClient());
         LaunchSound launchSound = new LaunchSound(this);

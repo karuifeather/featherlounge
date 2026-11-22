@@ -24,6 +24,6 @@ YT_CLIENT_ID=... YT_CLIENT_SECRET=... ./build.sh
 ## What is stored, and where
 
 - The discovered YouTube TV client (for a week) and an access token and a refresh token, in the app's private WebView storage on the TV (`localStorage`). `allowBackup` is off, so they are not included in backups.
-- Nothing is sent to any server operated by this project. Requests go from your TV straight to Google (the TV client page, sign-in and your feed), YouTube's image CDN, Stremio's public catalog and public Piped instances (fallback trending).
+- Nothing is sent to any server operated by this project. Requests go from your TV straight to Google (the TV client page, sign-in and your feed), YouTube's image CDN, Stremio's public catalog, TMDB and Trakt (only if the build has their keys, see [recommendations.md](recommendations.md) and [trakt.md](trakt.md)) and public Piped instances (fallback trending).
 
 **Sign out** (top bar, press OK twice) deletes the tokens. You can also revoke access at <https://myaccount.google.com/permissions>, or uninstall the app.

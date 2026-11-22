@@ -15,6 +15,8 @@
 #   KEY_ALIAS        key alias                   (default: featherlounge)
 #   KEY_PASS         key password                (default: same as KEYSTORE_PASS)
 #   VERSION_NAME     version to stamp, e.g. 0.2.0 (default: the manifest's)
+#   TMDB_API_KEY     optional: free TMDB key that turns on personalised recommendations (docs/recommendations.md)
+#   TRAKT_CLIENT_ID  optional: a Trakt app's Client ID, turns on Trakt linking (docs/trakt.md); TRAKT_CLIENT_SECRET only if it has one
 #   YT_CLIENT_ID / YT_CLIENT_SECRET   optional: pin the YouTube sign-in client; falls back to ./config.local.js
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -51,6 +53,30 @@ elif [ -f config.local.js ]; then
   echo "YouTube sign-in client: pinned (from config.local.js)"
 else
   echo "YouTube sign-in client: discovered at runtime"
+fi
+
+# Optional TMDB key for the personalised movie/show rows. Appended to the staged config so it works with either branch above.
+if [ -n "${TMDB_API_KEY:-}" ]; then
+  [[ $TMDB_API_KEY =~ ^[A-Za-z0-9]+$ ]] || { echo "error: TMDB_API_KEY contains unexpected characters" >&2; exit 1; }
+  printf "window.FL_CONFIG.tmdbKey = '%s';\n" "$TMDB_API_KEY" >> "$B/assets/config.js"
+  echo "TMDB recommendations: enabled (from environment)"
+elif grep -q "tmdbKey: '[A-Za-z0-9]" "$B/assets/config.js"; then
+  echo "TMDB recommendations: enabled (from config.local.js)"
+else
+  echo "TMDB recommendations: off (no TMDB_API_KEY)"
+fi
+
+# Optional Trakt app (watch history and recommendations). The Client ID is enough: a PKCE app has no secret.
+if [ -n "${TRAKT_CLIENT_ID:-}" ]; then
+  re='^[A-Za-z0-9_-]+$'
+  [[ $TRAKT_CLIENT_ID =~ $re && ${TRAKT_CLIENT_SECRET:-x} =~ $re ]] || { echo "error: TRAKT_CLIENT_ID/TRAKT_CLIENT_SECRET contain unexpected characters" >&2; exit 1; }
+  printf "window.FL_CONFIG.traktId = '%s';\n" "$TRAKT_CLIENT_ID" >> "$B/assets/config.js"
+  [ -n "${TRAKT_CLIENT_SECRET:-}" ] && printf "window.FL_CONFIG.traktSecret = '%s';\n" "$TRAKT_CLIENT_SECRET" >> "$B/assets/config.js"
+  echo "Trakt linking: enabled (from environment)"
+elif grep -q "traktId: '[A-Za-z0-9]" "$B/assets/config.js"; then
+  echo "Trakt linking: enabled (from config.local.js)"
+else
+  echo "Trakt linking: off (no TRAKT_CLIENT_ID)"
 fi
 
 # Release builds stamp the version from VERSION_NAME (CI passes the tag); the code grows with the version.

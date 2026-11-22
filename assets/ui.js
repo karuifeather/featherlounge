@@ -59,6 +59,9 @@ const APP_ICONS = {
     '<path d="M12 8.6a3.4 3.4 0 100 6.8 3.4 3.4 0 000-6.8zm9 4.3v-1.8l-2.1-.4a7 7 0 00-.9-2.1l1.2-1.8-1.3-1.3-1.8 1.2a7 7 0 00-2.1-.9L13.6 3h-1.8l-.4 2.1a7 7 0 00-2.1.9L7.5 4.8 6.2 6.1l1.2 1.8a7 7 0 00-.9 2.1l-2.1.4v1.8l2.1.4c.2.8.5 1.5.9 2.1l-1.2 1.8 1.3 1.3 1.8-1.2c.6.4 1.3.7 2.1.9l.4 2.1h1.8l.4-2.1c.8-.2 1.5-.5 2.1-.9l1.8 1.2 1.3-1.3-1.2-1.8c.4-.6.7-1.3.9-2.1z" transform="translate(0 -.1)"/>',
   update: '<path d="M12 3l6.5 7H14v6h-4v-6H5.5zM5 19h14v2H5z"/>',
   setup: '<path d="M3 17.3V21h3.7l10.9-10.9-3.7-3.7zM20.7 7a1 1 0 000-1.4l-2.3-2.3a1 1 0 00-1.4 0l-1.8 1.8 3.7 3.7z"/>',
+  trakt: '<path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1.6 14.4L6 12l1.4-1.4 3 3 6.2-6.2L18 8.8z"/>',
+  prefs:
+    '<path d="M12 21l-1.4-1.3C5.4 15.1 2 12 2 8.5 2 5.4 4.4 3 7.5 3c1.7 0 3.4.8 4.5 2.1C13.1 3.8 14.8 3 16.5 3 19.6 3 22 5.4 22 8.5c0 3.5-3.4 6.6-8.6 11.2z"/>',
   account:
     '<path d="M12 12.2a4.6 4.6 0 100-9.2 4.6 4.6 0 000 9.2zm0 2.3c-4.2 0-8.2 2.1-8.2 5.1V21h16.4v-1.4c0-3-4-5.1-8.2-5.1z"/>',
 };
@@ -74,12 +77,21 @@ function addAppButton(app) {
 
 function buildTop() {
   // Setup is a first-run flow: once it has been completed its shortcut is gone for good.
-  APPS.filter((app) => app.id !== 'setup' || !setupCompleted()).forEach(addAppButton);
+  // The For you shortcut needs a TMDB key in the build, and the Setup shortcut goes once setup is completed.
+  const shown = (app) => {
+    if (app.id === 'setup') return !setupCompleted();
+    if (app.id === 'prefs') return tmdbEnabled();
+    if (app.id === 'trakt') return traktEnabled();
+    return true;
+  };
+  APPS.filter(shown).forEach(addAppButton);
 }
 
 function updateAccountLabel() {
   const button = appEls.find((x) => x.dataset.app === 'account');
   if (button) button.querySelector('.lbl').textContent = auth.get() ? 'Sign out' : 'Sign in to YouTube';
+  const trakt = appEls.find((x) => x.dataset.app === 'trakt');
+  if (trakt) trakt.querySelector('.lbl').textContent = traktAuth.get() ? 'Unlink Trakt' : 'Trakt';
 }
 
 // ---------- cards ----------
@@ -178,6 +190,7 @@ function fill(row) {
   row.sec.querySelector('.cnt').textContent = '';
   row.cfg
     .load()
+    .then((items) => withoutWatched(items, row.cfg))
     .then((items) => showItems(row, items))
     .catch((error) => (error && error.skip ? removeRow(row) : showError(row)));
 }
@@ -202,7 +215,7 @@ function buildRows() {
   rows = [];
   memo = {};
   if (!rowsGlide) rowsGlide = createGlide(host, 'y');
-  ROWS.forEach((cfg) => {
+  [...traktRows(), ...personalRows(), ...ROWS].forEach((cfg) => {
     const row = createRow(cfg, host);
     rows.push(row);
     fill(row);

@@ -15,6 +15,8 @@ Recommendations from YouTube and Stremio on one screen, opened in <a href="https
 - **One home screen, two sources.** Carousels of YouTube videos and Stremio movies/shows, with a large hero for whatever is focused.
 - **Opens in your apps.** A YouTube card plays in **SmartTube**; a movie or show opens in **Stremio**.
 - **Personalized YouTube (optional).** Sign in once with a code on your phone to get your own YouTube recommendations. Without it you get public trending videos. See [docs/youtube.md](docs/youtube.md).
+- **Recommendations tuned to you (optional).** With a free TMDB key in the build, pick your streaming services, genres and a few favourite titles with the remote and get "Because you liked…", "on your services" and hidden-gem rows. See [docs/recommendations.md](docs/recommendations.md).
+- **Trakt (optional).** Link your Trakt account with a code on your phone to get "Because you watched…", your watchlist, Trakt's recommendations, and to hide what you've already seen. See [docs/trakt.md](docs/trakt.md).
 - **First-run setup.** Makes itself the home screen and helps you clear out unused apps. Once you finish it, the Setup shortcut disappears for good (skipping keeps it).
 - **Built for a remote.** D-pad navigation, smooth scrolling, shortcuts for SmartTube, Stremio, Network and Settings.
 - **Updates itself on request.** Tells you when a new release is out; you choose when to install.
@@ -51,6 +53,8 @@ Open **FeatherLounge** from the TV's app list. Details and troubleshooting: [doc
 | [docs/building.md](docs/building.md)                           | Build from source, signing, environment variables  |
 | [docs/installing.md](docs/installing.md)                       | Install over `adb`, set as home, update, uninstall |
 | [docs/youtube.md](docs/youtube.md)                             | YouTube sign-in: how it works, privacy, risks      |
+| [docs/recommendations.md](docs/recommendations.md)             | Personalized movie/show rows (TMDB key)            |
+| [docs/trakt.md](docs/trakt.md)                                 | Link Trakt: history, watchlist, hide watched       |
 | [docs/architecture.md](docs/architecture.md)                   | How the app is put together; adding a row          |
 | [docs/debloat.md](docs/debloat.md)                             | Optional: clean unwanted apps off a TV with `adb`  |
 | [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md) | Reporting issues, contributing                     |
@@ -61,7 +65,9 @@ Pushing a `v*` tag builds a signed APK and attaches it to a GitHub release (see 
 
 ## Disclaimer
 
-FeatherLounge is an independent project. It is not affiliated with or endorsed by Google, YouTube, Stremio or SmartTube; all names and trademarks belong to their owners. The optional YouTube sign-in uses an **unofficial, undocumented** interface and may violate YouTube's Terms of Service. Use it at your own risk (see [docs/youtube.md](docs/youtube.md)).
+FeatherLounge is an independent project. It is not affiliated with or endorsed by Google, YouTube, Stremio or SmartTube; all names and trademarks belong to their owners (including Trakt). The optional YouTube sign-in uses an **unofficial, undocumented** interface and may violate YouTube's Terms of Service. Use it at your own risk (see [docs/youtube.md](docs/youtube.md)).
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.
 
 ## License
 

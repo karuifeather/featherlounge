@@ -17,6 +17,8 @@ const APPS = [
   { id: 'stremio', label: 'Stremio' },
   { id: 'wifi', label: 'Network' },
   { id: 'settings', label: 'Settings' },
+  { id: 'trakt', label: 'Trakt' },
+  { id: 'prefs', label: 'For you' },
   { id: 'account', label: 'YouTube account' },
   { id: 'setup', label: 'Setup' },
 ];

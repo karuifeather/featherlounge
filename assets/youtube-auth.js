@@ -133,6 +133,7 @@ async function pollForSignIn(client, device, isCurrent) {
 async function startLogin() {
   const run = ++loginRun;
   const isCurrent = () => run === loginRun;
+  $('#ltitle').textContent = 'Sign in to YouTube';
   showLogin('…', '', MSG_CONTACTING);
   try {
     const client = await youtubeClient();
