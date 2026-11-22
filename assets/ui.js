@@ -196,11 +196,7 @@ function fill(row) {
     .then((items) => withoutWatched(items, row.cfg))
     .then((items) => showItems(row, items))
     .catch((error) => {
-      if (error && error.skip && /Recommended|Continue|New episodes|watchlist/.test(row.cfg.title)) {
-        const msg = String(error.why || 'skipped (empty or all watched)');
-        row.cfg.kind = 'poster';
-        showItems(row, [{ src: 'info', title: 'DEBUG', by: msg, desc: msg }]);
-      } else if (error && error.skip) removeRow(row);
+      if (error && error.skip) removeRow(row);
       else {
         console.warn('row failed: ' + row.cfg.title + ': ' + (error && error.message ? error.message : error));
         showError(row);

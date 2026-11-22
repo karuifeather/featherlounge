@@ -10,7 +10,7 @@ const TRAKT_WATCHED_KEY = TRAKT_CACHE_PREFIX + 'watched';
 const TRAKT_REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob';
 const TRAKT_LIST_SIZE = 20;
 const DAY_MS = 24 * 60 * 60 * 1000;
-const TRAKT_SEED_POOL = 8; // how many recent titles "Because you watched" rotates through
+const TRAKT_SEED_POOL = 10; // how many recent titles "Because you watched" rotates through
 const TRAKT_EXPIRY_MARGIN_MS = 60 * 1000;
 const TRAKT_SLOW_DOWN_MS = 5000;
 const TRAKT_POLL_FAILURES = { 404: 'invalid code', 409: 'code already used', 410: 'code expired', 418: 'denied' };
@@ -125,7 +125,7 @@ function toItems(entries, type, title) {
     .map((entry) => traktToItem(unwrap(entry, type), type))
     .filter(Boolean)
     .slice(0, TRAKT_LIST_SIZE);
-  if (!items.length) throw Object.assign({}, SKIP_ROW, { why: 'empty: entries=' + (entries || []).length + ' keys=' + Object.keys((entries && entries[0]) || {}).join(',') });
+  if (!items.length) throw SKIP_ROW;
   if (title) items.title = title; // showItems() renames the row to this
   return items;
 }
@@ -141,13 +141,39 @@ const publicList = (path, type, title) => () =>
     toItems(entries, type, title),
   );
 
-// Trakt's own recommendations: it weighs everything you have watched, rated and collected.
-const traktRecommended = (type) => () =>
-  needsLink().then(() =>
-    traktCached(
-      '/recommendations/' + typeNoun(type) + '?extended=full&ignore_collected=true&limit=' + TRAKT_LIST_SIZE,
-    ).then((entries) => toItems(entries, type)),
+// Trakt's own recommendations weigh everything you have watched, but come back empty for some accounts. Then build
+// the same idea ourselves: gather titles related to many of your recent watches and rank the ones several point to.
+async function recommendedFromHistory(type) {
+  const seeds = await recentSeeds(type);
+  if (!seeds.length) throw SKIP_ROW;
+  const lists = await Promise.all(
+    seeds.map((seed) =>
+      traktCached(
+        '/' + typeNoun(type) + '/' + seed.ids.trakt + '/related?extended=full&limit=' + TRAKT_LIST_SIZE,
+      ).catch(() => []),
+    ),
   );
+  const own = new Set(seeds.map((seed) => seed.ids.trakt));
+  const scored = new Map();
+  lists.forEach((list) =>
+    list.forEach((entry, rank) => {
+      if (!entry.ids || own.has(entry.ids.trakt)) return;
+      const known = scored.get(entry.ids.trakt) || { entry, score: 0 };
+      known.score += 1 + (TRAKT_LIST_SIZE - rank) / TRAKT_LIST_SIZE; // a title many seeds share, and high up, wins
+      scored.set(entry.ids.trakt, known);
+    }),
+  );
+  const ranked = [...scored.values()].sort((a, b) => b.score - a.score).map((known) => known.entry);
+  return toItems(ranked.slice(0, TRAKT_LIST_SIZE * 2), type);
+}
+
+const traktRecommended = (type) => () =>
+  needsLink().then(async () => {
+    const own = await traktCached(
+      '/recommendations/' + typeNoun(type) + '?extended=full&ignore_collected=true&limit=' + TRAKT_LIST_SIZE,
+    ).catch(() => []);
+    return own.length ? toItems(own, type) : recommendedFromHistory(type);
+  });
 
 // Recently watched titles, newest first, one entry per title.
 async function recentSeeds(type) {
@@ -318,7 +344,7 @@ async function withoutWatched(items, cfg) {
   const seen = (item) =>
     item.src === 'st' && ((item.id && imdb.has(item.id)) || (item.tmdb && tmdb.has(mediaOf(item.type) + item.tmdb)));
   const kept = items.filter((item) => !seen(item));
-  if (!kept.length) throw Object.assign({}, SKIP_ROW, { why: 'all ' + items.length + ' watched; set=' + watched.imdb.length + '/' + watched.tmdb.length });
+  if (!kept.length) throw SKIP_ROW;
   kept.title = items.title;
   return kept;
 }
