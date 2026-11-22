@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FeatherLounge</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <div id="bg">
+        <div class="bgl" id="bgA"></div>
+        <div class="bgl" id="bgB"></div>
+      </div>
+      <div id="scrim"></div>
+      <header id="top">
+        <nav id="apps"></nav>
+        <div id="status">
+          <img class="brand" src="brand/lockup.svg" alt="FeatherLounge" /><span id="net" title="connection"></span
+          ><span id="clock">--:--</span>
+        </div>
+      </header>
+      <section id="hero" aria-live="polite">
+        <div id="chips"></div>
+        <h1 id="title">FeatherLounge</h1>
+        <p id="desc"></p>
+        <div id="cta"><span class="key">OK</span><span id="ctatxt">Open</span></div>
+      </section>
+      <div id="clip"><main id="rows"></main></div>
+      <div id="login" hidden>
+        <div class="box">
+          <h2>Sign in to YouTube</h2>
+          <p>On your phone or computer, go to</p>
+          <p class="url" id="lurl"></p>
+          <p>and enter this code</p>
+          <p class="code" id="lcode">…</p>
+          <p class="small" id="lmsg">Waiting for you to sign in · Back to cancel</p>
+        </div>
+      </div>
+      <div id="setup" hidden>
+        <div class="box">
+          <p class="small" id="sstep"></p>
+          <h2 id="stitle"></h2>
+          <p id="sbody"></p>
+          <div id="slist"></div>
+          <p class="small" id="shint"></p>
+          <div id="sbtns"></div>
+        </div>
+      </div>
+      <div id="update" hidden>
+        <div class="box">
+          <h2 id="utitle"></h2>
+          <p id="ubody"></p>
+          <p id="unotes"></p>
+          <div id="ubtns"></div>
+        </div>
+      </div>
+      <div id="toast" role="status"></div>
+    </div>
+    <script src="config.js"></script>
+    <script src="settings.js"></script>
+    <script src="debloat.js"></script>
+    <script src="util.js"></script>
+    <script src="catalog.js"></script>
+    <script src="youtube-client.js"></script>
+    <script src="youtube-auth.js"></script>
+    <script src="youtube-feed.js"></script>
+    <script src="ui.js"></script>
+    <script src="setup.js"></script>
+    <script src="update.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

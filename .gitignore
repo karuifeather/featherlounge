@@ -1,0 +1,21 @@
+# build output
+build/
+*.apk
+*.aab
+*.idsig
+
+# secrets and local config - never commit
+config.local.js
+.env
+.env.*
+*.keystore
+*.jks
+*.pem
+local/
+
+# tooling / editor
+.idea/
+.vscode/
+.claude/
+.DS_Store
+node_modules/

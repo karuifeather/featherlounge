@@ -1,0 +1,25 @@
+# Packages FeatherLounge offers to remove, and that scripts/debloat.sh can remove over adb.
+# One per line:  package | label | category | note
+# Add entries by pull request (see CONTRIBUTING.md). Only list apps that are safe to remove for
+# every user: never launchers, keyboards, Play services/Store, Settings, SystemUI, WebView, or
+# vendor TV/tuner/HAL packages. Removal is `pm uninstall --user 0`, so a factory reset restores it.
+# Categories: streaming, google, promo
+
+# streaming: remove the ones you don't use
+com.netflix.ninja                      | Netflix            | streaming | Preinstalled on most TVs
+com.amazon.amazonvideo.livingroom      | Prime Video        | streaming |
+com.disney.disneyplus                  | Disney+            | streaming |
+com.hulu.livingroomplus                | Hulu               | streaming |
+com.spotify.tv.android                 | Spotify            | streaming |
+com.apple.atve.androidtv.appletv       | Apple TV           | streaming |
+com.cbs.ott                            | Paramount+         | streaming |
+com.peacocktv.peacockandroid           | Peacock            | streaming |
+
+# google: replaced by SmartTube / not needed
+com.google.android.youtube.tv         | YouTube            | google    | SmartTube replaces it
+com.google.android.youtube.tvmusic    | YouTube Music      | google    |
+com.google.android.play.games          | Play Games         | google    |
+com.google.android.videos              | Play Movies & TV   | google    |
+com.google.android.music               | Play Music         | google    | Discontinued
+
+# promo: vendor ads and demo apps (add yours, e.g. com.<vendor>.<app>)

@@ -1,0 +1,20 @@
+{
+  "name": "featherlounge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Android TV home screen. This file only manages the formatting tooling; the app itself has no JS dependencies.",
+  "license": "MIT",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,html,css,json,md,yml}": "prettier --write"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.2",
+    "prettier": "^3.10.1"
+  }
+}
