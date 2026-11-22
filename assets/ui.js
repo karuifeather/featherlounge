@@ -155,6 +155,7 @@ function showSkeleton(row) {
 }
 
 function showItems(row, items) {
+  window.FeatherLounge && FeatherLounge.log && FeatherLounge.log('showItems ' + row.cfg.title + ' n=' + items.length);
   row.items = items;
   row.state = 'ok';
   if (items.title) row.sec.querySelector('.rt').textContent = items.title;
