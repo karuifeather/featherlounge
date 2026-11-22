@@ -9,7 +9,8 @@ const TRAKT_CACHE_PREFIX = 'trakt/'; // everything cached for the linked account
 const TRAKT_WATCHED_KEY = TRAKT_CACHE_PREFIX + 'watched';
 const TRAKT_REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob';
 const TRAKT_LIST_SIZE = 20;
-const TRAKT_UNLINK_CONFIRM_MS = 4000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const TRAKT_SEED_POOL = 8; // how many recent titles "Because you watched" rotates through
 const TRAKT_EXPIRY_MARGIN_MS = 60 * 1000;
 const TRAKT_SLOW_DOWN_MS = 5000;
 const TRAKT_POLL_FAILURES = { 404: 'invalid code', 409: 'code already used', 410: 'code expired', 418: 'denied' };
@@ -131,7 +132,17 @@ function toItems(entries, type, title) {
 
 const typeNoun = (type) => (type === 'movie' ? 'movies' : 'shows');
 const needsLink = () => (traktLinked() ? Promise.resolve() : Promise.reject(SKIP_ROW));
+const pad2 = (n) => String(n).padStart(2, '0');
+const episodeLabel = (episode) => episode && 'S' + episode.season + 'E' + episode.number;
 
+// Lists anyone can see (trending, popular, ...): no sign-in, cached under a prefix that unlinking leaves alone.
+const traktPublic = (path) => cached('tp/' + path, () => traktGet(path));
+const publicList = (path, type, title) => () =>
+  traktPublic(path + (path.includes('?') ? '&' : '?') + 'extended=full&limit=' + TRAKT_LIST_SIZE).then((entries) =>
+    toItems(entries, type, title),
+  );
+
+// Trakt's own recommendations: it weighs everything you have watched, rated and collected.
 const traktRecommended = (type) => () =>
   needsLink().then(() =>
     traktCached(
@@ -139,16 +150,74 @@ const traktRecommended = (type) => () =>
     ).then((entries) => toItems(entries, type)),
   );
 
-// "Because you watched <the latest title>": Trakt's related titles for it.
-const traktBecause = (type) => () =>
+// Recently watched titles, newest first, one entry per title.
+async function recentSeeds(type) {
+  const history = await traktCached('/sync/history/' + typeNoun(type) + '?limit=60');
+  const seen = new Set();
+  const seeds = [];
+  history.forEach((entry) => {
+    const seed = unwrap(entry, type);
+    const id = seed && seed.ids && seed.ids.trakt;
+    if (!id || seen.has(id)) return;
+    seen.add(id);
+    seeds.push(seed);
+  });
+  return seeds.slice(0, TRAKT_SEED_POOL);
+}
+
+// "Because you watched <one of your recent titles>". Which one changes daily, and `slot` keeps rows distinct.
+const traktBecause = (type, slot) => () =>
   needsLink().then(async () => {
-    const history = await traktCached('/sync/history/' + typeNoun(type) + '?limit=1');
-    const seed = history[0] && unwrap(history[0], type);
-    if (!seed || !seed.ids || !seed.ids.trakt) throw SKIP_ROW;
+    const seeds = await recentSeeds(type);
+    if (seeds.length <= slot) throw SKIP_ROW;
+    const seed = seeds[(Math.floor(Date.now() / DAY_MS) + slot) % seeds.length];
     const related = await traktCached(
       '/' + typeNoun(type) + '/' + seed.ids.trakt + '/related?extended=full&limit=' + TRAKT_LIST_SIZE,
     );
     return toItems(related, type, 'Because you watched ' + seed.title);
+  });
+
+const withNote = (item, note) => (item.by = [note, item.by].filter(Boolean).join(META_SEPARATOR)) && item;
+
+// Started but not finished: movies and episodes with saved progress.
+const traktContinue = () =>
+  needsLink().then(async () => {
+    const [movies, episodes] = await Promise.all([
+      traktCached('/sync/playback/movies?extended=full'),
+      traktCached('/sync/playback/episodes?extended=full'),
+    ]);
+    const entries = [...movies, ...episodes].sort((a, b) => String(b.paused_at).localeCompare(String(a.paused_at)));
+    const shown = new Set();
+    const items = [];
+    entries.forEach((entry) => {
+      const isMovie = !!entry.movie;
+      const item = traktToItem(isMovie ? entry.movie : entry.show, isMovie ? 'movie' : 'series');
+      if (!item || shown.has(item.id)) return;
+      shown.add(item.id);
+      const note = isMovie ? '' : episodeLabel(entry.episode);
+      items.push(withNote(item, [note, Math.round(entry.progress) + '%'].filter(Boolean).join(' ')));
+    });
+    if (!items.length) throw SKIP_ROW;
+    return items.slice(0, TRAKT_LIST_SIZE);
+  });
+
+// New episodes from shows you follow, from a week ago to the next two weeks.
+const traktAiring = () =>
+  needsLink().then(async () => {
+    const start = new Date(Date.now() - 7 * DAY_MS);
+    const date = start.getFullYear() + '-' + pad2(start.getMonth() + 1) + '-' + pad2(start.getDate());
+    const entries = await traktCached('/calendars/my/shows/' + date + '/21?extended=full');
+    const shown = new Set();
+    const items = [];
+    entries.forEach((entry) => {
+      const item = traktToItem(entry.show, 'series');
+      if (!item || shown.has(item.id)) return;
+      shown.add(item.id);
+      const when = new Date(entry.first_aired).toLocaleDateString([], { weekday: 'short' });
+      items.push(withNote(item, [episodeLabel(entry.episode), when].filter(Boolean).join(' ')));
+    });
+    if (!items.length) throw SKIP_ROW;
+    return items.slice(0, TRAKT_LIST_SIZE);
   });
 
 const traktWatchlist = () =>
@@ -173,9 +242,7 @@ const traktEmptyCard = () => [
     src: 'info',
     title: 'Trakt is linked',
     by: 'No watch history yet',
-    desc:
-      'Trakt builds recommendations from what you watch. Turn on Trakt in Stremio’s settings and watch a few titles, and they will show up here.' +
-      (tmdbEnabled() ? ' Until then, press OK to pick what you like.' : ''),
+    desc: 'Trakt builds recommendations from what you watch. Turn on Trakt in Stremio’s settings and watch a few titles, and they will show up here.',
   },
 ];
 
@@ -186,16 +253,31 @@ const traktStatus = () =>
     return traktEmptyCard();
   });
 
+// Your rows first (what Trakt recommends from your history), then what everyone is watching. The second group
+// needs only the Trakt app, not a linked account.
 function traktRows() {
-  if (!traktLinked()) return [];
+  if (!traktEnabled()) return [];
   const row = (title, load, extra) => ({ ...stremioRow(title, load), ...extra });
+  const mine = traktLinked()
+    ? [
+        { title: 'Trakt', sub: 'Trakt', kind: 'poster', load: traktStatus },
+        row('Continue watching', traktContinue, { keepWatched: true }),
+        row('New episodes from your shows', traktAiring, { keepWatched: true }),
+        row('Recommended movies for you', traktRecommended('movie')),
+        row('Recommended shows for you', traktRecommended('series')),
+        row('Because you watched', traktBecause('series', 0)),
+        row('Because you watched', traktBecause('movie', 0)),
+        row('Because you watched', traktBecause('series', 1)),
+        row('Your watchlist', traktWatchlist, { keepWatched: true }),
+      ]
+    : [];
   return [
-    { title: 'Trakt', sub: 'Trakt', kind: 'poster', load: traktStatus },
-    row('Recommended movies', traktRecommended('movie')),
-    row('Recommended shows', traktRecommended('series')),
-    row('Because you watched', traktBecause('movie')),
-    row('Because you watched', traktBecause('series')),
-    row('Your watchlist', traktWatchlist, { keepWatched: true }),
+    ...mine,
+    row('Trending movies', publicList('/movies/trending', 'movie')),
+    row('Trending shows', publicList('/shows/trending', 'series')),
+    row('Popular this week: movies', publicList('/movies/watched/weekly', 'movie')),
+    row('Popular this week: shows', publicList('/shows/watched/weekly', 'series')),
+    row('Coming soon', publicList('/movies/anticipated', 'movie')),
   ];
 }
 
@@ -284,19 +366,19 @@ async function startTraktLink() {
 }
 
 // ---------- shortcut ----------
-let unlinkArmedUntil = 0;
 function traktAction() {
   if (!traktAuth.get()) {
     startTraktLink();
     return;
   }
-  if (Date.now() < unlinkArmedUntil) {
-    traktAuth.clear();
-    unlinkArmedUntil = 0;
-    toast('Unlinked from Trakt');
-    rebuildAll();
-  } else {
-    unlinkArmedUntil = Date.now() + TRAKT_UNLINK_CONFIRM_MS;
-    toast('Press OK again to unlink Trakt');
-  }
+  confirmDialog({
+    title: 'Unlink Trakt?',
+    body: 'Your Trakt recommendations and watch history filtering will go away until you link again.',
+    confirmLabel: 'Unlink',
+    run() {
+      traktAuth.clear();
+      toast('Unlinked from Trakt');
+      rebuildAll();
+    },
+  });
 }

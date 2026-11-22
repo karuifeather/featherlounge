@@ -7,8 +7,8 @@
   --st: #9b7bff;
   --pad: 72px;
   --gap: 28px;
-  --wide: 352px;
-  --poster: 212px;
+  --wide: 440px;
+  --poster: 264px;
 }
 * {
   box-sizing: border-box;
@@ -206,7 +206,7 @@ img.brand-word {
   left: var(--pad);
   top: 132px;
   width: 860px;
-  height: 370px;
+  height: 330px;
   z-index: 3;
 }
 #hero.in {
@@ -307,7 +307,7 @@ img.brand-word {
   position: absolute;
   left: 0;
   right: 0;
-  top: 520px;
+  top: 470px;
   height: 560px;
   overflow: hidden;
   z-index: 4;
@@ -327,17 +327,17 @@ img.brand-word {
   padding: 0 var(--pad);
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   margin-bottom: 6px;
-  height: 44px;
+  height: 52px;
 }
 .rt {
-  font-size: 30px;
+  font-size: 38px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 .src {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -360,7 +360,7 @@ img.brand-word {
 .cnt {
   margin-left: auto;
   margin-right: var(--pad);
-  font-size: 20px;
+  font-size: 24px;
   color: var(--faint);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -428,13 +428,13 @@ img.brand-word {
   padding: 2px 9px;
   border-radius: 7px;
   background: rgba(0, 0, 0, 0.78);
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .t {
   margin-top: 14px;
-  font-size: 22px;
+  font-size: 28px;
   line-height: 1.25;
   font-weight: 650;
   color: #e9e9f3;
@@ -442,15 +442,15 @@ img.brand-word {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 55px;
+  min-height: 70px;
 }
 .poster .t {
   -webkit-line-clamp: 2;
-  min-height: 55px;
+  min-height: 70px;
 }
 .s {
   margin-top: 4px;
-  font-size: 18px;
+  font-size: 23px;
   color: var(--faint);
   white-space: nowrap;
   overflow: hidden;
@@ -588,7 +588,6 @@ img.brand-word {
   opacity: 0.55;
 }
 #setup,
-#prefs,
 #update {
   position: absolute;
   inset: 0;
@@ -599,12 +598,10 @@ img.brand-word {
   justify-content: center;
 }
 #setup[hidden],
-#prefs[hidden],
 #update[hidden] {
   display: none;
 }
 #setup .box,
-#prefs .box,
 #update .box {
   width: 960px;
   padding: 48px 64px;
@@ -613,26 +610,22 @@ img.brand-word {
   border: 2px solid #2a2a40;
 }
 #setup h2,
-#prefs h2,
 #update h2 {
   font-size: 44px;
   margin: 6px 0 16px;
 }
 #setup p,
-#prefs p,
 #update p {
   margin: 8px 0;
   color: var(--dim);
   font-size: 26px;
 }
 #setup .small,
-#prefs .small,
 #update .small {
   font-size: 18px;
   color: var(--faint);
 }
-#slist,
-#plist {
+#slist {
   max-height: 340px;
   overflow: hidden;
   margin: 20px 0 8px;

@@ -65,7 +65,6 @@ async function accessToken(forceRefresh) {
 const DEVICE_GRANT_TYPE = 'http://oauth.net/grant_type/device/1.0';
 const DEFAULT_POLL_INTERVAL_S = 5;
 const SLOW_DOWN_STEP_MS = 5000;
-const SIGN_OUT_CONFIRM_MS = 4000;
 
 const MSG_CONTACTING = 'Contacting Google…';
 const MSG_WAITING = 'Waiting for you to sign in · Back to cancel';
@@ -151,19 +150,19 @@ function cancelLogin() {
 }
 
 // ---------- account shortcut ----------
-let signOutArmedUntil = 0;
 function accountAction() {
   if (!auth.get()) {
     startLogin();
     return;
   }
-  if (Date.now() < signOutArmedUntil) {
-    auth.clear();
-    signOutArmedUntil = 0;
-    toast('Signed out of YouTube');
-    rebuildAll();
-  } else {
-    signOutArmedUntil = Date.now() + SIGN_OUT_CONFIRM_MS;
-    toast('Press OK again to sign out of YouTube');
-  }
+  confirmDialog({
+    title: 'Sign out of YouTube?',
+    body: 'Your YouTube recommendations will go away until you sign in again.',
+    confirmLabel: 'Sign out',
+    run() {
+      auth.clear();
+      toast('Signed out of YouTube');
+      rebuildAll();
+    },
+  });
 }

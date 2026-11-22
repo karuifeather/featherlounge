@@ -43,17 +43,15 @@ function setFocus(rowNumber, column) {
 function activateShortcut(app) {
   if (app.id === 'account') accountAction();
   else if (app.id === 'setup') openSetup();
-  else if (app.id === 'prefs') openPrefs();
   else if (app.id === 'trakt') traktAction();
-  else if (app.id === 'update') openUpdate();
+  else if (app.id === 'update') updatesAction();
   else bridge.app(app.id);
 }
 
 function activateItem(item) {
   if (isLoginItem(item)) startLogin();
-  else if (isInfoItem(item)) {
-    if (tmdbEnabled()) openPrefs();
-  } else if (item.src === 'yt') bridge.youtube(item.id);
+  else if (isInfoItem(item)) toast('Watch a few titles in Stremio with Trakt turned on');
+  else if (item.src === 'yt') bridge.youtube(item.id);
   else openInStremio(item);
 }
 
@@ -101,11 +99,6 @@ document.addEventListener('keydown', (event) => {
     event.preventDefault();
     return;
   }
-  if (prefsOpen()) {
-    prefsKey(event.key);
-    event.preventDefault();
-    return;
-  }
   if (setupOpen()) {
     setupKey(event.key);
     event.preventDefault(); // the setup overlay swallows every key
@@ -126,7 +119,6 @@ document.addEventListener('keydown', (event) => {
 // Home button / Back: close the sign-in overlay, otherwise return focus to the top.
 window.onHome = () => {
   if (updateOpen()) closeUpdate();
-  else if (prefsOpen()) prefsBack();
   else if (setupOpen()) setupBack();
   else if (loginOpen()) cancelLogin();
   else setFocus(0, 0);
@@ -309,5 +301,4 @@ updateClock();
 updateNetworkIndicator();
 setFocus(1, 0);
 maybeStartSetup();
-maybePromptPrefs();
 checkForUpdate();

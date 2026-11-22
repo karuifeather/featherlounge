@@ -88,14 +88,13 @@ const SETUP_STEPS = [
   () => ({
     title: 'You’re all set',
     body:
-      tmdbEnabled() || traktEnabled()
-        ? 'Link Trakt and pick what you like for recommendations that fit you, or just start browsing.'
+      traktEnabled() && !traktLinked()
+        ? 'Link Trakt for recommendations built from what you watch, or just start browsing.'
         : auth.get()
           ? 'Enjoy FeatherLounge.'
           : 'Sign in to YouTube for your own recommendations, or just start browsing.',
     buttons: [
       traktEnabled() && !traktLinked() ? { label: 'Link Trakt', run: () => finishSetup(startTraktLink, true) } : null,
-      tmdbEnabled() ? { label: 'Personalize recommendations', run: () => finishSetup(openPrefs, true) } : null,
       auth.get() ? null : { label: 'Sign in to YouTube', run: () => finishSetup(startLogin, true) },
       { label: 'Start browsing', run: () => finishSetup(null, true) },
     ].filter(Boolean),

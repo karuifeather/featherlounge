@@ -18,29 +18,41 @@ const APPS = [
   { id: 'wifi', label: 'Network' },
   { id: 'settings', label: 'Settings' },
   { id: 'trakt', label: 'Trakt' },
-  { id: 'prefs', label: 'For you' },
   { id: 'account', label: 'YouTube account' },
+  { id: 'update', label: 'Updates' },
   { id: 'setup', label: 'Setup' },
 ];
 
 const youtubeRow = (title, load) => ({ title, sub: SOURCE_YOUTUBE, kind: 'yt', load });
 const stremioRow = (title, load) => ({ title, sub: SOURCE_STREMIO, kind: 'poster', load });
 const feedRow = (title, shelfIndex) => youtubeRow(title, () => shelf(shelfIndex));
-const pipedSearch = (query) => piped('/search?q=' + query + '&filter=videos');
 
-const ROWS = [
-  feedRow('Recommended for you', 0),
-  feedRow('More for you', 1),
-  youtubeRow('Trending on YouTube', () => (signedIn() ? Promise.reject(SKIP_ROW) : piped('/trending?region=US'))),
+// The home screen, top to bottom: your YouTube recommendations (signed in), then what Trakt recommends from your
+// history, then what is popular and well rated, then plain Stremio catalogs. Only one YouTube row is ever shown.
+const CINEMETA_ROWS = [
   stremioRow('Popular Movies', () => cine('movie/top.json', 'movie')),
-  feedRow('More to watch', 2),
   stremioRow('Popular Shows', () => cine('series/top.json', 'series')),
-  feedRow('Picked for you', 3),
-  youtubeRow('New Trailers', () => pipedSearch('official+trailer+2026')),
+];
+const GENRE_ROWS = [
   stremioRow('Action Movies', () => cine('movie/top/genre=Action.json', 'movie')),
   stremioRow('Comedy Shows', () => cine('series/top/genre=Comedy.json', 'series')),
-  youtubeRow('Music', () => (signedIn() ? shelf(4) : pipedSearch('new+music+videos'))),
 ];
+const youtubeHomeRow = () =>
+  signedIn()
+    ? feedRow('Recommended on YouTube', 0)
+    : youtubeRow('Trending on YouTube', () => piped('/trending?region=US'));
+
+function homeRows() {
+  const catalogs = traktEnabled() ? [] : CINEMETA_ROWS; // Trakt's lists already cover these
+  return [
+    ...(signedIn() ? [youtubeHomeRow()] : []),
+    ...traktRows(),
+    ...tmdbRows(),
+    ...(signedIn() ? [] : [youtubeHomeRow()]),
+    ...catalogs,
+    ...GENRE_ROWS,
+  ];
+}
 
 // First-run setup. Bump SETUP_VERSION to show the flow again after an update that adds a step.
 const SETUP_VERSION = 1;
