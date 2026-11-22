@@ -86,7 +86,14 @@ body {
   opacity: 0.8;
 }
 #scrim {
-  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(9, 9, 15, 0.62) 0%, rgba(9, 9, 15, 0) 100%);
 }
 /* top bar */
 #top {
@@ -154,11 +161,26 @@ body {
   font-size: 26px;
   font-weight: 600;
 }
-img.brand {
-  height: 40px;
+/* Quiet brand: a small mark and wordmark sized to the clock, readable through a soft shadow
+   and the top scrim instead of a container. */
+img.brand-mark {
+  height: 30px;
   width: auto;
-  margin-right: 22px;
+  margin-right: -4px;
+}
+img.brand-word {
+  height: 28px;
+  width: auto;
+  margin-right: 14px;
   opacity: 0.92;
+}
+img.brand-mark,
+img.brand-word {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
+}
+#status {
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 #net {
   width: 11px;
@@ -645,4 +667,245 @@ img.brand {
   white-space: pre-line;
   max-height: 140px;
   overflow: hidden;
+}
+
+/* branded launch screen: covers the page until the first content is ready */
+#splash {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(900px 600px at 50% 45%, #1b1740 0%, transparent 70%), var(--bg);
+  transition:
+    opacity 0.9s ease,
+    transform 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Launch intro. One slow, confident motion on an expo-out ease, using transform and opacity only so a TV
+   composites it smoothly. The sound's hit lands at 0.8s (res/raw/launch_chime.ogg): the glow opens and the wordmark
+   resolves exactly then. The feather starts where the native launch screen draws it, so nothing jumps. */
+#splash::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('brand/noise.png');
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+/* Every intro animation waits for .go, which the page adds at the moment the sound actually starts. */
+#splash:not(.go) * {
+  animation-play-state: paused !important;
+}
+#splash.still * {
+  animation: none !important;
+}
+#splash .glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1500px;
+  height: 1000px;
+  margin: -500px 0 0 -750px;
+  background: radial-gradient(
+    closest-side,
+    rgba(133, 184, 184, 0.2) 0%,
+    rgba(120, 150, 200, 0.13) 22%,
+    rgba(90, 90, 190, 0.07) 48%,
+    rgba(60, 50, 140, 0.025) 74%,
+    rgba(60, 50, 140, 0) 100%
+  );
+  animation: splash-glow var(--intro) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+#splash .mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 213px;
+  height: 195px;
+  margin: -97px 0 0 -106px;
+  animation: splash-mark var(--intro) both;
+}
+#splash .mark img,
+#splash .word img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+#splash .word {
+  position: absolute;
+  left: 50%;
+  top: 670px;
+  width: 520px;
+  height: 83px;
+  margin-left: -260px;
+}
+#splash .word img {
+  position: absolute;
+  inset: 0;
+}
+/* the name rises out of the light: "Feather" first, "Lounge" a breath later */
+#splash .w1 {
+  animation: splash-rise 1.5s calc(var(--hit) + 0.3s) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+#splash .w2 {
+  animation: splash-rise 1.5s calc(var(--hit) + 0.62s) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* the room's light comes up from below on the landing, like stepping into a lit space */
+#splash .floor {
+  position: absolute;
+  left: 50%;
+  bottom: -260px;
+  width: 2200px;
+  height: 760px;
+  margin-left: -1100px;
+  background: radial-gradient(
+    closest-side,
+    rgba(133, 184, 184, 0.2),
+    rgba(110, 120, 200, 0.09) 45%,
+    rgba(60, 50, 140, 0) 100%
+  );
+  animation: splash-floor 2.2s var(--hit) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* slow dust motes drifting up through the light (built in app.js) */
+#splash .motes i {
+  position: absolute;
+  bottom: -20px;
+  border-radius: 50%;
+  background: rgba(200, 235, 235, 0.9);
+  opacity: 0;
+  animation: splash-mote var(--t) var(--d) linear both;
+}
+/* ripples leave the feather on the hit */
+#splash .ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 240px;
+  height: 240px;
+  margin: -120px 0 0 -120px;
+  border-radius: 50%;
+  border: 2px solid rgba(160, 215, 215, 0.4);
+  opacity: 0;
+  animation: splash-ring 2.2s var(--hit) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* small feathers drift outwards from the hit (built in app.js) */
+#splash .wisps img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34px;
+  margin: -17px 0 0 -17px;
+  opacity: 0;
+  animation: splash-wisp 3s calc(var(--hit) + var(--d)) cubic-bezier(0.1, 0.6, 0.2, 1) both;
+}
+@keyframes splash-rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes splash-floor {
+  from {
+    opacity: 0;
+    transform: translateY(80px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes splash-mote {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  20% {
+    opacity: var(--o);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), -1000px);
+  }
+}
+@keyframes splash-ring {
+  from {
+    opacity: 0.55;
+    transform: scale(0.45);
+  }
+  to {
+    opacity: 0;
+    transform: scale(6);
+  }
+}
+@keyframes splash-wisp {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0) scale(0.3);
+  }
+  12% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(var(--s));
+  }
+}
+#splash .bar {
+  position: absolute;
+  left: 50%;
+  top: 830px;
+  margin-left: -110px;
+  width: 220px;
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  animation: splash-fade 0.5s 3.2s both;
+}
+#splash .bar i {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: 2px;
+  background: #85b8b8;
+  animation: splash-bar 1.2s ease-in-out infinite;
+}
+#splash.done {
+  transform: scale(1.05);
+}
+/* the home content settles in as the splash lifts */
+#stage.enter #top,
+#stage.enter #clip,
+#stage.enter #bg {
+  animation: home-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes home-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes splash-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes splash-bar {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
 }

@@ -135,6 +135,7 @@ const http = (method, url, headers, body) =>
 // ---------- native actions ----------
 // Desktop-browser fallback for testing outside the app.
 const bridge = window.FeatherLounge || {
+  playLaunchSound: () => false,
   youtube: (id) => open('https://www.youtube.com/watch?v=' + id),
   stremio: (type, id) => open('https://web.stremio.com/#/detail/' + type + '/' + id),
   app: (app) => toast('Open: ' + app),

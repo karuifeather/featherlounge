@@ -4,10 +4,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>FeatherLounge</title>
+    <link rel="stylesheet" href="intro-beats.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div id="stage">
+      <div id="splash" role="status" aria-label="Loading FeatherLounge">
+        <div class="glow"></div>
+        <div class="floor"></div>
+        <div class="motes"></div>
+        <i class="ring"></i>
+        <div class="wisps"></div>
+        <div class="mark"><img src="brand/feather.svg" alt="" /></div>
+        <div class="word" aria-hidden="true">
+          <img class="w1" src="brand/wordmark-feather.svg" alt="" />
+          <img class="w2" src="brand/wordmark-lounge.svg" alt="" />
+        </div>
+        <div class="bar"><i></i></div>
+      </div>
       <div id="bg">
         <div class="bgl" id="bgA"></div>
         <div class="bgl" id="bgB"></div>
@@ -16,8 +30,11 @@
       <header id="top">
         <nav id="apps"></nav>
         <div id="status">
-          <img class="brand" src="brand/lockup.svg" alt="FeatherLounge" /><span id="net" title="connection"></span
-          ><span id="clock">--:--</span>
+          <img class="brand-mark" src="brand/feather.svg" alt="" /><img
+            class="brand-word"
+            src="brand/wordmark.svg"
+            alt="FeatherLounge"
+          /><span id="net" title="connection"></span><span id="clock">--:--</span>
         </div>
       </header>
       <section id="hero" aria-live="polite">

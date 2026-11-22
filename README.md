@@ -15,10 +15,11 @@ Recommendations from YouTube and Stremio on one screen, opened in <a href="https
 - **One home screen, two sources.** Carousels of YouTube videos and Stremio movies/shows, with a large hero for whatever is focused.
 - **Opens in your apps.** A YouTube card plays in **SmartTube**; a movie or show opens in **Stremio**.
 - **Personalized YouTube (optional).** Sign in once with a code on your phone to get your own YouTube recommendations. Without it you get public trending videos. See [docs/youtube.md](docs/youtube.md).
-- **First-run setup.** Makes itself the home screen and helps you clear out unused apps.
+- **First-run setup.** Makes itself the home screen and helps you clear out unused apps. Once you finish it, the Setup shortcut disappears for good (skipping keeps it).
 - **Built for a remote.** D-pad navigation, smooth scrolling, shortcuts for SmartTube, Stremio, Network and Settings.
 - **Updates itself on request.** Tells you when a new release is out; you choose when to install.
-- **Tiny and private.** Under 200 KB, no accounts, no analytics, no servers of its own.
+- **A proper launch.** A branded intro (the feather drifts in and settles with a short bass-weighted sound, then the name rises) plays on a cold start; relaunching shows a quiet static logo with no sound.
+- **Tiny and private.** Under 400 KB, no accounts, no analytics, no servers of its own.
 
 ## Requirements
 

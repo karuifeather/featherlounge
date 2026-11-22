@@ -43,6 +43,7 @@ const ROWS = [
 // First-run setup. Bump SETUP_VERSION to show the flow again after an update that adds a step.
 const SETUP_VERSION = 1;
 const SETUP_KEY = 'fl.setup';
+const SETUP_COMPLETED_KEY = 'fl.setupCompleted';
 
 // Update check against this project's latest GitHub release.
 const UPDATE_API = 'https://api.github.com/repos/karuifeather/featherlounge/releases/latest';

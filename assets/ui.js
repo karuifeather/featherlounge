@@ -73,7 +73,8 @@ function addAppButton(app) {
 }
 
 function buildTop() {
-  APPS.forEach(addAppButton);
+  // Setup is a first-run flow: once it has been completed its shortcut is gone for good.
+  APPS.filter((app) => app.id !== 'setup' || !setupCompleted()).forEach(addAppButton);
 }
 
 function updateAccountLabel() {
@@ -282,6 +283,7 @@ function renderHero(item) {
   $('#desc').textContent = item.desc || '';
   $('#ctatxt').textContent = login ? 'Sign in' : 'Open in ' + (youtube ? SOURCE_YOUTUBE : SOURCE_STREMIO);
   if (!login) setBackground(item.bg || item.img || '', item.img, youtube);
+  dismissSplash();
   const hero = $('#hero');
   hero.classList.remove('in');
   void hero.offsetWidth; // force a reflow so the entrance animation restarts

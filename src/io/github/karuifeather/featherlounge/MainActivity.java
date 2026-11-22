@@ -15,7 +15,7 @@ import android.webkit.WebViewClient;
 public class MainActivity extends Activity {
     private static final String PAGE_URL = "file:///android_asset/index.html";
     private static final String BRIDGE_NAME = "FeatherLounge";
-    private static final String BACKGROUND_COLOR = "#0b0b12";
+    private static final String BACKGROUND_COLOR = "#09090f";
 
     private WebView web;
 
@@ -26,8 +26,11 @@ public class MainActivity extends Activity {
         configureSettings(web.getSettings());
         web.setWebViewClient(new WebViewClient());
         web.setWebChromeClient(new WebChromeClient());
+        LaunchSound launchSound = new LaunchSound(this);
+        launchSound.setOnStarted(() -> web.post(() -> web.evaluateJavascript("window.onIntroStart&&window.onIntroStart()", null)));
+        launchSound.prepare();
         AppLauncher launcher = new AppLauncher(this);
-        web.addJavascriptInterface(new Bridge(web, launcher, new DeviceSetup(this, launcher), new Updater(this, web, launcher)), BRIDGE_NAME);
+        web.addJavascriptInterface(new Bridge(web, launcher, new DeviceSetup(this, launcher), new Updater(this, web, launcher), launchSound), BRIDGE_NAME);
         setContentView(web);
         web.loadUrl(PAGE_URL);
         hideBars();

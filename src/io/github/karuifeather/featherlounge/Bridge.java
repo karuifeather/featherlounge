@@ -10,13 +10,15 @@ class Bridge {
     private final AppLauncher launcher;
     private final DeviceSetup setup;
     private final Updater updater;
+    private final LaunchSound launchSound;
     private final HttpFetcher fetcher = new HttpFetcher();
 
-    Bridge(WebView web, AppLauncher launcher, DeviceSetup setup, Updater updater) {
+    Bridge(WebView web, AppLauncher launcher, DeviceSetup setup, Updater updater, LaunchSound launchSound) {
         this.web = web;
         this.launcher = launcher;
         this.setup = setup;
         this.updater = updater;
+        this.launchSound = launchSound;
     }
 
     /** Runs the request off the UI thread, then reports back through window.__http(id, status, text). */
@@ -26,6 +28,11 @@ class Bridge {
             String script = "window.__http(" + id + "," + response.status + "," + JSONObject.quote(response.text) + ")";
             web.post(() -> web.evaluateJavascript(script, null));
         }).start();
+    }
+
+    /** Starts the launch chime; true on the first launch of this process (the page then plays the full intro). */
+    @JavascriptInterface public boolean playLaunchSound() {
+        return launchSound.play();
     }
 
     @JavascriptInterface public void youtube(String videoId) {

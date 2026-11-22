@@ -8,6 +8,7 @@ const setupState = { step: 0, sel: 0, homeAsked: false, apps: [] };
 
 const setupOpen = () => !$('#setup').hidden;
 const setupDone = () => storage.read(SETUP_KEY) >= SETUP_VERSION;
+const setupCompleted = () => storage.read(SETUP_COMPLETED_KEY) >= SETUP_VERSION;
 
 function nativeJson(call, fallback) {
   try {
@@ -90,8 +91,8 @@ const SETUP_STEPS = [
       ? 'Enjoy FeatherLounge.'
       : 'Sign in to YouTube for your own recommendations, or just start browsing.',
     buttons: [
-      auth.get() ? null : { label: 'Sign in to YouTube', run: () => finishSetup(startLogin) },
-      { label: 'Start browsing', run: finishSetup },
+      auth.get() ? null : { label: 'Sign in to YouTube', run: () => finishSetup(startLogin, true) },
+      { label: 'Start browsing', run: () => finishSetup(null, true) },
     ].filter(Boolean),
   }),
 ];
@@ -157,12 +158,24 @@ function openSetup() {
   goToSetupStep(0);
 }
 
-// Closing always marks setup as seen, so skipping never nags again.
-function finishSetup(after) {
+// Closing always marks setup as seen, so skipping never nags again. Only finishing the last step
+// (completed) also removes the Setup shortcut; skipping keeps it so the user can come back.
+function finishSetup(after, completed) {
   storage.write(SETUP_KEY, SETUP_VERSION);
+  if (completed === true) {
+    storage.write(SETUP_COMPLETED_KEY, SETUP_VERSION);
+    removeSetupShortcut();
+  }
   $('#setup').hidden = true;
   setFocus(1, 0);
   if (typeof after === 'function') after();
+}
+
+function removeSetupShortcut() {
+  const index = appEls.findIndex((node) => node.dataset.app === 'setup');
+  if (index < 0) return;
+  appEls[index].remove();
+  appEls.splice(index, 1);
 }
 
 function maybeStartSetup() {

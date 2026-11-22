@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand-coloured window so nothing but the app's own dark background shows before the page paints. -->
+    <style name="Launch" parent="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+</resources>
