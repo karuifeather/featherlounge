@@ -97,6 +97,7 @@ function updateAccountLabel() {
 // ---------- cards ----------
 const isPoster = (kind) => kind === 'poster';
 const isLoginItem = (item) => item.src === 'login';
+const isInfoItem = (item) => item.src === 'info';
 
 function createThumbImage(url) {
   const image = new Image();
@@ -112,6 +113,9 @@ function createThumb(item) {
   if (isLoginItem(item)) {
     thumb.classList.add('login');
     thumb.append(el('div', 'lg', '▶'), el('div', null, 'Sign in'));
+  } else if (isInfoItem(item)) {
+    thumb.classList.add('login');
+    thumb.append(el('div', 'lg', '✓'), el('div', null, 'Linked'));
   } else if (item.img) {
     thumb.appendChild(createThumbImage(item.img));
   }
@@ -272,6 +276,7 @@ const isYoutubeItem = (item) => item.src === 'yt' || isLoginItem(item);
 
 function heroKindLabel(item) {
   if (isYoutubeItem(item)) return 'YOUTUBE';
+  if (isInfoItem(item)) return 'TRAKT';
   return item.type === 'series' ? 'SHOW' : 'MOVIE';
 }
 
@@ -294,8 +299,15 @@ function renderHero(item) {
   renderChips(item);
   $('#title').textContent = login ? 'Sign in to YouTube' : item.title;
   $('#desc').textContent = item.desc || '';
-  $('#ctatxt').textContent = login ? 'Sign in' : 'Open in ' + (youtube ? SOURCE_YOUTUBE : SOURCE_STREMIO);
-  if (!login) setBackground(item.bg || item.img || '', item.img, youtube);
+  const info = isInfoItem(item);
+  $('#ctatxt').textContent = login
+    ? 'Sign in'
+    : info
+      ? tmdbEnabled()
+        ? 'Pick what you like'
+        : 'Trakt'
+      : 'Open in ' + (youtube ? SOURCE_YOUTUBE : SOURCE_STREMIO);
+  if (!login && !info) setBackground(item.bg || item.img || '', item.img, youtube);
   dismissSplash();
   const hero = $('#hero');
   hero.classList.remove('in');

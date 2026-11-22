@@ -51,7 +51,9 @@ function activateShortcut(app) {
 
 function activateItem(item) {
   if (isLoginItem(item)) startLogin();
-  else if (item.src === 'yt') bridge.youtube(item.id);
+  else if (isInfoItem(item)) {
+    if (tmdbEnabled()) openPrefs();
+  } else if (item.src === 'yt') bridge.youtube(item.id);
   else openInStremio(item);
 }
 
@@ -193,6 +195,7 @@ const SPLASH_INTRO_MS = 3300; // cold start: the whole animation; the sound's ta
 const SPLASH_MAX_MS = 8000;
 const SOUND_START_TIMEOUT_MS = 300; // the sound never reported starting (muted, error): run the visuals anyway
 const VISUAL_DELAY_MS = 0; // raise if a soundbar / HDMI ARC delays the audio, so the picture waits for it
+const NATIVE_HANDOVER_TIMEOUT_MS = 5000; // the native splash never said it was gone: begin anyway
 const WISP_COUNT = 9;
 const MOTE_COUNT = 26;
 
@@ -271,10 +274,11 @@ setTimeout(() => {
 
 buildWisps();
 buildMotes();
-// Decode the artwork first so the first beats never draw with blank images, then ask native to play the sound.
-Promise.all(
-  Array.from(document.querySelectorAll('#splash img'), (img) => (img.decode ? img.decode().catch(() => {}) : 0)),
-).then(() => {
+// Starts the intro (or the still logo on a relaunch). Runs once the native splash, if any, has handed over.
+let launchBegun = false;
+function beginLaunch() {
+  if (launchBegun) return;
+  launchBegun = true;
   if (bridge.playLaunchSound()) {
     splashMinMs = SPLASH_INTRO_MS;
     setTimeout(startIntro, SOUND_START_TIMEOUT_MS);
@@ -282,6 +286,19 @@ Promise.all(
     $('#splash').classList.add('still');
     startIntro();
   }
+}
+
+// Native hook: the system splash has faded out, so the page's own splash (same feather) is what shows.
+window.onSplashGone = beginLaunch;
+
+// Decode the artwork first so the first beats never draw with blank images. Then tell native the page is ready: it
+// keeps the system splash up until this frame is really on screen (no blank gap while the WebView starts) and calls
+// onSplashGone. Without a native splash to wait for, begin right away; the timeout is a backstop.
+Promise.all(
+  Array.from(document.querySelectorAll('#splash img'), (img) => (img.decode ? img.decode().catch(() => {}) : 0)),
+).then(() => {
+  if (bridge.pageReady && bridge.pageReady()) setTimeout(beginLaunch, NATIVE_HANDOVER_TIMEOUT_MS);
+  else beginLaunch();
 });
 
 // ---------- start ----------

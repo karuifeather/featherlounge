@@ -167,10 +167,30 @@ const traktWatchlist = () =>
     return items;
   });
 
+// Linked but nothing watched yet: Trakt has nothing to recommend from, so say so instead of showing no rows.
+const traktEmptyCard = () => [
+  {
+    src: 'info',
+    title: 'Trakt is linked',
+    by: 'No watch history yet',
+    desc:
+      'Trakt builds recommendations from what you watch. Turn on Trakt in Stremio’s settings and watch a few titles, and they will show up here.' +
+      (tmdbEnabled() ? ' Until then, press OK to pick what you like.' : ''),
+  },
+];
+
+const traktStatus = () =>
+  needsLink().then(async () => {
+    const watched = await traktWatched();
+    if (watched.imdb.length || watched.tmdb.length) throw SKIP_ROW;
+    return traktEmptyCard();
+  });
+
 function traktRows() {
   if (!traktLinked()) return [];
   const row = (title, load, extra) => ({ ...stremioRow(title, load), ...extra });
   return [
+    { title: 'Trakt', sub: 'Trakt', kind: 'poster', load: traktStatus },
     row('Recommended movies', traktRecommended('movie')),
     row('Recommended shows', traktRecommended('series')),
     row('Because you watched', traktBecause('movie')),
