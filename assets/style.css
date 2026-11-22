@@ -8,7 +8,7 @@
   --pad: 72px;
   --gap: 28px;
   --wide: 440px;
-  --poster: 264px;
+  --poster: 256px;
 }
 * {
   box-sizing: border-box;
@@ -206,7 +206,7 @@ img.brand-word {
   left: var(--pad);
   top: 132px;
   width: 860px;
-  height: 330px;
+  height: 290px;
   z-index: 3;
 }
 #hero.in {
@@ -307,7 +307,7 @@ img.brand-word {
   position: absolute;
   left: 0;
   right: 0;
-  top: 470px;
+  top: 430px;
   height: 560px;
   overflow: hidden;
   z-index: 4;
