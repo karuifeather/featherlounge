@@ -3,19 +3,21 @@ package io.github.karuifeather.featherlounge;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
-import android.window.SplashScreenView;
+import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 /** Full-screen WebView host for the FeatherLounge home screen UI (assets/index.html). */
 public class MainActivity extends Activity {
@@ -23,20 +25,21 @@ public class MainActivity extends Activity {
     private static final String BRIDGE_NAME = "FeatherLounge";
     private static final String BACKGROUND_COLOR = "#09090f";
 
-    // The system splash (Android 12+) is kept on screen until the page has painted, so the screen never goes blank
-    // while the WebView starts. It is released by the page (see pageReady) or, at worst, by this timeout.
-    private static final long SPLASH_HOLD_MAX_MS = 4000;
-    private static final long SPLASH_FADE_MS = 250;
+    // The window background shows the feather until the first frame, but the WebView needs another second or two to
+    // paint its own page. A native copy of that same feather sits over the WebView until the page says it is drawn
+    // (see pageReady), so the screen never goes blank in between. HOLD_MAX is the backstop if the page never answers.
+    private static final long LAUNCH_HOLD_MAX_MS = 4000;
+    private static final long LAUNCH_FADE_MS = 250;
+    private static final int LAUNCH_FEATHER_PX = 320; // same size as res/drawable/launch_background.xml
 
     private WebView web;
+    private FrameLayout root;
     private final Handler ui = new Handler(Looper.getMainLooper());
-    private volatile View splashView; // the held system splash, or null
-    private boolean pageDrawn;
+    private volatile View launchOverlay; // the native splash over the page, or null once released
     private long visualStateId;
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
-        holdSystemSplash();
         web = new WebView(this);
         web.setBackgroundColor(Color.parseColor(BACKGROUND_COLOR));
         configureSettings(web.getSettings());
@@ -51,48 +54,57 @@ public class MainActivity extends Activity {
         launchSound.prepare();
         AppLauncher launcher = new AppLauncher(this);
         web.addJavascriptInterface(new Bridge(web, launcher, new DeviceSetup(this, launcher), new Updater(this, web, launcher), launchSound, this::onPageReady), BRIDGE_NAME);
-        setContentView(web);
+        root = new FrameLayout(this);
+        root.setBackgroundColor(Color.parseColor(BACKGROUND_COLOR));
+        root.addView(web, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        launchOverlay = buildLaunchOverlay();
+        root.addView(launchOverlay, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        ui.postDelayed(this::releaseLaunchOverlay, LAUNCH_HOLD_MAX_MS);
+        setContentView(root);
+        web.requestFocus();
         web.loadUrl(PAGE_URL);
         hideBars();
     }
 
-    /** Asking for the exit callback is what keeps the system splash up until we call remove() on it. */
-    private void holdSystemSplash() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
-        getSplashScreen().setOnExitAnimationListener(view -> {
-            splashView = view;
-            Log.i("FLSplash", SystemClock.uptimeMillis() + " listener fired, pageDrawn=" + pageDrawn + " view=" + view.getWidth() + "x" + view.getHeight());
-            ui.postDelayed(this::releaseSplash, SPLASH_HOLD_MAX_MS);
-            if (pageDrawn) releaseSplash();
-        });
+    /** The feather on the brand colour, drawn exactly like the launch window so the hand-over is invisible. */
+    private View buildLaunchOverlay() {
+        FrameLayout overlay = new FrameLayout(this);
+        overlay.setBackgroundColor(Color.parseColor(BACKGROUND_COLOR));
+        int id = getResources().getIdentifier("launch_feather", "drawable", getPackageName());
+        if (id != 0) {
+            ImageView feather = new ImageView(this);
+            feather.setImageResource(id);
+            feather.setScaleType(ImageView.ScaleType.FIT_XY);
+            overlay.addView(feather, new FrameLayout.LayoutParams(LAUNCH_FEATHER_PX, LAUNCH_FEATHER_PX, Gravity.CENTER));
+        }
+        return overlay;
     }
 
     /**
-     * The page says it has laid out its own splash. Returns true if the system splash is being held, in which case
-     * it is released once the renderer has really drawn that frame and the page is told (window.onSplashGone).
+     * The page says its own splash is laid out. Returns true if the native splash is still up, in which case it is
+     * released once the renderer has really drawn that frame and the page is told (window.onSplashGone).
      * Called on a bridge thread.
      */
     private boolean onPageReady() {
-        Log.i("FLSplash", SystemClock.uptimeMillis() + " pageReady called, held=" + (splashView != null));
-        if (splashView == null) return false;
+        Log.i("FLSplash", SystemClock.uptimeMillis() + " pageReady called, held=" + (launchOverlay != null));
+        if (launchOverlay == null) return false;
         runOnUiThread(() -> web.postVisualStateCallback(++visualStateId, new WebView.VisualStateCallback() {
             @Override public void onComplete(long requestId) {
                 Log.i("FLSplash", SystemClock.uptimeMillis() + " visual state complete");
-                pageDrawn = true;
-                releaseSplash();
+                releaseLaunchOverlay();
             }
         }));
         return true;
     }
 
-    /** Fades the held system splash out, then tells the page. Safe to call more than once. */
-    private void releaseSplash() {
-        final View view = splashView;
-        if (view == null) return;
-        splashView = null;
+    /** Fades the native splash out, then tells the page. Safe to call more than once. */
+    private void releaseLaunchOverlay() {
+        final View overlay = launchOverlay;
+        if (overlay == null) return;
+        launchOverlay = null;
         Log.i("FLSplash", SystemClock.uptimeMillis() + " releasing (fade)");
-        view.animate().alpha(0f).setDuration(SPLASH_FADE_MS).withEndAction(() -> {
-            if (view instanceof SplashScreenView) ((SplashScreenView) view).remove();
+        overlay.animate().alpha(0f).setDuration(LAUNCH_FADE_MS).withEndAction(() -> {
+            root.removeView(overlay);
             Log.i("FLSplash", SystemClock.uptimeMillis() + " removed, telling page");
             callPageHook("onSplashGone");
         }).start();

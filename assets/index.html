@@ -9,6 +9,20 @@
   </head>
   <body>
     <div id="stage">
+      <script>
+        // Scale the stage before the first paint. Waiting for app.js (the last script) let a slow TV paint the splash
+        // unscaled, with its centre in the bottom-right corner. app.js keeps it fitted on resize.
+        (function () {
+          var w = document.documentElement.clientWidth;
+          var h = document.documentElement.clientHeight;
+          if (!w || !h) return;
+          var scale = Math.min(w / 1920, h / 1080);
+          var stage = document.getElementById('stage');
+          stage.style.transform = 'scale(' + scale + ')';
+          stage.style.left = (w - 1920 * scale) / 2 + 'px';
+          stage.style.top = (h - 1080 * scale) / 2 + 'px';
+        })();
+      </script>
       <div id="splash" role="status" aria-label="Loading FeatherLounge">
         <div class="glow"></div>
         <div class="floor"></div>
