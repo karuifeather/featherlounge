@@ -51,9 +51,28 @@ FeatherLounge registers as a home app, but many TV firmwares keep launching thei
 adb shell cmd role add-role-holder --user 0 android.app.role.HOME io.github.karuifeather.featherlounge
 ```
 
-If pressing **Home** still opens the stock launcher, your firmware ignores the setting (confirmed on a TCL Google TV, Android 14). Open FeatherLounge from the app list instead. To go back to the stock launcher:
+If pressing **Home** still opens the stock launcher, the firmware ignores the role: Android picks the home app by priority, and the stock launcher outranks FeatherLounge. Check which apps handle Home:
 
 ```bash
+adb shell pm query-activities --brief -a android.intent.action.MAIN -c android.intent.category.HOME
+```
+
+Then disable, for your user only, every entry that ranks above FeatherLounge (priority 0). On a TCL Google TV (Android 14) these are the stock launcher and a setup-wizard component that also registers as a home app:
+
+```bash
+adb shell pm disable-user --user 0 com.google.android.apps.tv.launcherx
+adb shell pm disable-user --user 0 com.google.android.tungsten.setupwraith
+```
+
+Press **Home** to confirm FeatherLounge opens. Package names differ between TVs, so use the ones from the query above. Disable them only after FeatherLounge holds the home role, otherwise the TV may have no home screen.
+
+Caveats: an OTA update or factory reset may re-enable them. With the setup wizard disabled, a factory reset may not go through its normal setup, so re-enable it first. Some features, such as the input switcher or Assistant results, may rely on the stock launcher.
+
+To go back to the stock launcher:
+
+```bash
+adb shell pm enable com.google.android.apps.tv.launcherx
+adb shell pm enable com.google.android.tungsten.setupwraith
 adb shell cmd role remove-role-holder --user 0 android.app.role.HOME io.github.karuifeather.featherlounge
 ```
 
