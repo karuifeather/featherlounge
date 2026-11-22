@@ -1,6 +1,6 @@
 {
   "name": "featherlounge",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "Android TV home screen. This file only manages the formatting tooling; the app itself has no JS dependencies.",
   "license": "MIT",
