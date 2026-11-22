@@ -239,11 +239,7 @@ function startIntro() {
   setTimeout(() => {
     splashStart = Date.now();
     $('#splash').classList.add('go');
-    window.FeatherLounge && FeatherLounge.log && FeatherLounge.log('intro go, min=' + splashMinMs);
-    setTimeout(() => {
-      window.FeatherLounge && FeatherLounge.log && FeatherLounge.log('introDone');
-      introDoneResolve();
-    }, splashMinMs);
+    setTimeout(introDoneResolve, splashMinMs);
     console.log('intro go at ' + Math.round(performance.now()) + 'ms (page time)');
   }, VISUAL_DELAY_MS);
 }
@@ -291,9 +287,6 @@ function dismissSplash() {
     return;
   }
   splashClosing = true;
-  window.FeatherLounge &&
-    FeatherLounge.log &&
-    FeatherLounge.log('dismiss, wait=' + Math.max(0, splashMinMs - (Date.now() - splashStart)));
   setTimeout(
     () => {
       splash.classList.add('done');
