@@ -6,8 +6,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -86,11 +84,9 @@ public class MainActivity extends Activity {
      * Called on a bridge thread.
      */
     private boolean onPageReady() {
-        Log.i("FLSplash", SystemClock.uptimeMillis() + " pageReady called, held=" + (launchOverlay != null));
         if (launchOverlay == null) return false;
         runOnUiThread(() -> web.postVisualStateCallback(++visualStateId, new WebView.VisualStateCallback() {
             @Override public void onComplete(long requestId) {
-                Log.i("FLSplash", SystemClock.uptimeMillis() + " visual state complete");
                 releaseLaunchOverlay();
             }
         }));
@@ -102,10 +98,8 @@ public class MainActivity extends Activity {
         final View overlay = launchOverlay;
         if (overlay == null) return;
         launchOverlay = null;
-        Log.i("FLSplash", SystemClock.uptimeMillis() + " releasing (fade)");
         overlay.animate().alpha(0f).setDuration(LAUNCH_FADE_MS).withEndAction(() -> {
             root.removeView(overlay);
-            Log.i("FLSplash", SystemClock.uptimeMillis() + " removed, telling page");
             callPageHook("onSplashGone");
         }).start();
     }
