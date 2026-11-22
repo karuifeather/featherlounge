@@ -125,7 +125,7 @@ function toItems(entries, type, title) {
     .map((entry) => traktToItem(unwrap(entry, type), type))
     .filter(Boolean)
     .slice(0, TRAKT_LIST_SIZE);
-  if (!items.length) throw SKIP_ROW;
+  if (!items.length) throw Object.assign({}, SKIP_ROW, { why: 'empty: entries=' + (entries || []).length + ' keys=' + Object.keys((entries && entries[0]) || {}).join(',') });
   if (title) items.title = title; // showItems() renames the row to this
   return items;
 }
@@ -318,7 +318,7 @@ async function withoutWatched(items, cfg) {
   const seen = (item) =>
     item.src === 'st' && ((item.id && imdb.has(item.id)) || (item.tmdb && tmdb.has(mediaOf(item.type) + item.tmdb)));
   const kept = items.filter((item) => !seen(item));
-  if (!kept.length) throw SKIP_ROW;
+  if (!kept.length) throw Object.assign({}, SKIP_ROW, { why: 'all ' + items.length + ' watched; set=' + watched.imdb.length + '/' + watched.tmdb.length });
   kept.title = items.title;
   return kept;
 }
