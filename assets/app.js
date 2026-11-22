@@ -181,6 +181,19 @@ function fitStage() {
   stage.style.transform = 'scale(' + scale + ')';
   stage.style.left = (width - STAGE_WIDTH * scale) / 2 + 'px';
   stage.style.top = (height - STAGE_HEIGHT * scale) / 2 + 'px';
+  if (window.FeatherLounge && FeatherLounge.log)
+    FeatherLounge.log(
+      'fitStage cw=' +
+        width +
+        ' ch=' +
+        height +
+        ' dpr=' +
+        devicePixelRatio +
+        ' iw=' +
+        innerWidth +
+        ' scale=' +
+        scale.toFixed(3),
+    );
 }
 addEventListener('resize', fitStage);
 fitStage();
@@ -277,6 +290,7 @@ buildMotes();
 // Starts the intro (or the still logo on a relaunch). Runs once the native splash, if any, has handed over.
 let launchBegun = false;
 function beginLaunch() {
+  if (window.FeatherLounge && FeatherLounge.log) FeatherLounge.log('beginLaunch (already=' + launchBegun + ')');
   if (launchBegun) return;
   launchBegun = true;
   if (bridge.playLaunchSound()) {
@@ -297,6 +311,7 @@ window.onSplashGone = beginLaunch;
 Promise.all(
   Array.from(document.querySelectorAll('#splash img'), (img) => (img.decode ? img.decode().catch(() => {}) : 0)),
 ).then(() => {
+  if (window.FeatherLounge && FeatherLounge.log) FeatherLounge.log('decode done, calling pageReady');
   if (bridge.pageReady && bridge.pageReady()) setTimeout(beginLaunch, NATIVE_HANDOVER_TIMEOUT_MS);
   else beginLaunch();
 });

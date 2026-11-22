@@ -7,6 +7,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.window.SplashScreenView;
@@ -59,6 +61,7 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
         getSplashScreen().setOnExitAnimationListener(view -> {
             splashView = view;
+            Log.i("FLSplash", SystemClock.uptimeMillis() + " listener fired, pageDrawn=" + pageDrawn + " view=" + view.getWidth() + "x" + view.getHeight());
             ui.postDelayed(this::releaseSplash, SPLASH_HOLD_MAX_MS);
             if (pageDrawn) releaseSplash();
         });
@@ -70,9 +73,11 @@ public class MainActivity extends Activity {
      * Called on a bridge thread.
      */
     private boolean onPageReady() {
+        Log.i("FLSplash", SystemClock.uptimeMillis() + " pageReady called, held=" + (splashView != null));
         if (splashView == null) return false;
         runOnUiThread(() -> web.postVisualStateCallback(++visualStateId, new WebView.VisualStateCallback() {
             @Override public void onComplete(long requestId) {
+                Log.i("FLSplash", SystemClock.uptimeMillis() + " visual state complete");
                 pageDrawn = true;
                 releaseSplash();
             }
@@ -85,8 +90,10 @@ public class MainActivity extends Activity {
         final View view = splashView;
         if (view == null) return;
         splashView = null;
+        Log.i("FLSplash", SystemClock.uptimeMillis() + " releasing (fade)");
         view.animate().alpha(0f).setDuration(SPLASH_FADE_MS).withEndAction(() -> {
             if (view instanceof SplashScreenView) ((SplashScreenView) view).remove();
+            Log.i("FLSplash", SystemClock.uptimeMillis() + " removed, telling page");
             callPageHook("onSplashGone");
         }).start();
     }

@@ -47,6 +47,10 @@ class Bridge {
         return launchSound.play();
     }
 
+    @JavascriptInterface public void log(String message) {
+        android.util.Log.i("FLPage", android.os.SystemClock.uptimeMillis() + " " + message);
+    }
+
     @JavascriptInterface public void youtube(String videoId) {
         launcher.openYouTubeVideo(videoId);
     }
