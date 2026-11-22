@@ -212,21 +212,6 @@ const NATIVE_HANDOVER_TIMEOUT_MS = 5000; // the native splash never said it was 
 const WISP_COUNT = 9;
 const MOTE_COUNT = 26;
 
-// Rows are fetched straight away but only drawn once the intro is over, one per beat, so decoding posters and
-// building the page never competes with the animation (see fill() in ui.js).
-let introDoneResolve;
-const introDone = new Promise((resolve) => (introDoneResolve = resolve));
-const ROW_STAGGER_MS = 60;
-let renderChain = Promise.resolve();
-function drawAfterIntro(draw) {
-  renderChain = renderChain
-    .then(() => introDone)
-    .then(draw)
-    .catch(() => {})
-    .then(() => sleep(ROW_STAGGER_MS));
-  return renderChain;
-}
-
 let splashStart = Date.now();
 let splashMinMs = SPLASH_QUICK_MS;
 let introStarted = false;
@@ -239,7 +224,6 @@ function startIntro() {
   setTimeout(() => {
     splashStart = Date.now();
     $('#splash').classList.add('go');
-    setTimeout(introDoneResolve, splashMinMs);
     console.log('intro go at ' + Math.round(performance.now()) + 'ms (page time)');
   }, VISUAL_DELAY_MS);
 }
@@ -298,7 +282,6 @@ function dismissSplash() {
 }
 setTimeout(() => {
   splashForced = true;
-  introDoneResolve();
   dismissSplash();
 }, SPLASH_MAX_MS);
 
