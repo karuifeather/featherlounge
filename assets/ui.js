@@ -195,7 +195,7 @@ function fill(row) {
   row.cfg
     .load()
     .then((items) => withoutWatched(items, row.cfg))
-    .then((items) => showItems(row, items))
+    .then((items) => drawAfterIntro(() => showItems(row, items)))
     .catch((error) => (error && error.skip ? removeRow(row) : showError(row)));
 }
 
