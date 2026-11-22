@@ -1,14 +1,14 @@
-# Personalized movie and show recommendations (optional)
+# Top-rated rows from TMDB (optional)
 
-Without this, the Stremio rows are Stremio's public popular lists. With a free **TMDB API key** in the build, FeatherLounge adds rows tuned to you, and a **For you** shortcut in the top bar to set them up with the remote.
+Without this, the Stremio rows are Stremio's public popular lists. With a free **TMDB API key** in the build, FeatherLounge adds quality rows that need no account. For rows built from what _you_ watch, link [Trakt](trakt.md).
 
 ## What you get
 
-- **Because you liked …** (up to three rows), from titles you pick.
-- **Movies / Shows on your services**, limited to the streaming services you choose and your genres.
-- **Hidden gems** (highly rated, less famous) and **Trending this week**.
+- **Top rated movies** and **Top rated shows**.
+- **Hidden gems** (highly rated, less famous).
+- **Trending this week** (only when Trakt is not set up; Trakt has its own trending rows).
 
-Cards still open in **Stremio**. Nothing needs typing: pick services, genres and favourites with the D-pad.
+Cards still open in **Stremio**. There is nothing to configure on the TV.
 
 ## Setup
 
@@ -24,13 +24,11 @@ For GitHub releases, add a repository secret named `TMDB_API_KEY`.
 
 The key ends up inside the APK, so anyone can extract it. TMDB keys are free and only identify the app, which is fine, but don't reuse one you care about.
 
-Without a key the app behaves as before and the **For you** shortcut is hidden.
+Without a key these rows are simply absent.
 
 ## What is stored, and where
 
-Your region (from the TV's language), services, genres and picked titles stay in the app's private storage on the TV (`localStorage`). Requests go from the TV straight to `api.themoviedb.org` and `image.tmdb.org`; they carry the API key and the titles or filters being asked for. Nothing is sent to any server operated by this project.
-
-Streaming availability data comes from TMDB (provided by JustWatch).
+Fetched lists are cached in the app's private storage on the TV (`localStorage`). Requests go from the TV straight to `api.themoviedb.org` and `image.tmdb.org`; they carry the API key and the list being asked for. Nothing is sent to any server operated by this project.
 
 ## Limits
 

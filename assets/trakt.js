@@ -291,7 +291,6 @@ function traktRows() {
         row('Recommended movies for you', traktRecommended('movie')),
         row('Recommended shows for you', traktRecommended('series')),
         row('Because you watched', traktBecause('series', 0)),
-        row('Because you watched', traktBecause('movie', 0)),
         row('Because you watched', traktBecause('series', 1)),
         row('Your watchlist', traktWatchlist, { keepWatched: true }),
       ]

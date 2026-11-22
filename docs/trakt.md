@@ -1,6 +1,6 @@
 # Trakt (optional)
 
-Linking [Trakt](https://trakt.tv) lets FeatherLounge use your watch history: **Recommended movies/shows** from Trakt, **Because you watched …** rows, **Your watchlist**, and it **hides titles you have already watched** from the other Stremio rows. Cards still open in **Stremio**.
+Linking [Trakt](https://trakt.tv) lets FeatherLounge use your watch history: these rows, in order: **Continue watching**, **New episodes from your shows**, **Recommended movies/shows for you** (Trakt's own picks, or, when Trakt has none for your account, titles related to many of your recent watches, ranked by how many point to them), **Because you watched …** (rotates through your recent titles daily) and **Your watchlist**. It also **hides titles you have already watched** from the other rows. Without linking, the Trakt app alone adds **Trending**, **Popular this week** and **Coming soon**. Cards still open in **Stremio**.
 
 Trakt is separate from the [TMDB rows](recommendations.md); you can use either or both.
 
