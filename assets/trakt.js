@@ -132,7 +132,6 @@ function toItems(entries, type, title) {
 
 const typeNoun = (type) => (type === 'movie' ? 'movies' : 'shows');
 const needsLink = () => (traktLinked() ? Promise.resolve() : Promise.reject(SKIP_ROW));
-const pad2 = (n) => String(n).padStart(2, '0');
 const episodeLabel = (episode) => episode && 'S' + episode.season + 'E' + episode.number;
 
 // Lists anyone can see (trending, popular, ...): no sign-in, cached under a prefix that unlinking leaves alone.
