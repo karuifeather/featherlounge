@@ -218,20 +218,12 @@ let introDoneResolve;
 const introDone = new Promise((resolve) => (introDoneResolve = resolve));
 const ROW_STAGGER_MS = 60;
 let renderChain = Promise.resolve();
-let firstRowDrawn = false;
-const FIRST_HERO_WAIT_MS = 1500;
-// The first row draws alone; the rest wait until its hero is up (the splash is closing) so the hero is never stuck
-// behind poster decoding. Later rows follow one per beat.
-async function afterFirstRow() {
-  const deadline = Date.now() + FIRST_HERO_WAIT_MS;
-  while (!splashClosing && Date.now() < deadline) await sleep(50);
-}
 function drawAfterIntro(draw) {
   renderChain = renderChain
     .then(() => introDone)
     .then(draw)
     .catch(() => {})
-    .then(() => (firstRowDrawn ? sleep(ROW_STAGGER_MS) : ((firstRowDrawn = true), afterFirstRow())));
+    .then(() => sleep(ROW_STAGGER_MS));
   return renderChain;
 }
 
